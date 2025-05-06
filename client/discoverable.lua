@@ -1,4 +1,5 @@
 local discoveredBlips = {}
+local externalZones = {}
 local showingBlipNotif = false
 local fadeAlpha = 0
 local fadeState = "in"
@@ -8,7 +9,6 @@ Discover = {}
 
 -- Custom scaleform for blip discovery notification
 Discover.ShowBlipDiscoveryNotification = function(data)
-
     debugPrint("^5Debug^7: ^2Showing blip discovery hud for^7: "..data.id.."^7")
     jsonPrint(data)
 
@@ -19,7 +19,9 @@ Discover.ShowBlipDiscoveryNotification = function(data)
             Wait(1000)
         end
         showingBlipNotif = true
-    else showingBlipNotif = true end
+    else
+        showingBlipNotif = true
+    end
     CreateThread(function()
         local startTime = GetGameTimer()
 
@@ -45,17 +47,19 @@ end
 Discover.DrawBlipDiscoveryNotification = function(data)
     --jsonPrint(data)
     local screenX, screenY = 0.5, 0.1
-    local discY, nameY, descY = -0.065, -0.045, 0.015
-    local boxWidth, boxHeight = 0.22, 0.14
+    local discY, nameY, descY = -0.060, -0.040, 0.015
+    local boxWidth, boxHeight = 0.22, 0.12
     local titleScale = 0.75
     local textScale = 0.35
 
-    if not data.description then nameY = -0.02 end
+    if not data.description then
+        discY = descY
+    end
 
     if gameName ~= "rdr3" then
         -- Draw background box
-        DrawSprite("timerbars", "all_black_bg", screenX - (boxWidth / 4) + 0.00045, screenY, (boxWidth / 2), boxHeight, 0.0, 255, 255, 255, fadeAlpha)
-        DrawSprite("timerbars", "all_black_bg", screenX + (boxWidth / 4) - 0.00045, screenY, (boxWidth / 2), boxHeight, 180.0, 255, 255, 255, fadeAlpha)
+        --DrawSprite("timerbars", "all_black_bg", screenX - (boxWidth / 4) + 0.00045, screenY, (boxWidth / 2), boxHeight, 0.0, 255, 255, 255, fadeAlpha)
+        --DrawSprite("timerbars", "all_black_bg", screenX + (boxWidth / 4) - 0.00045, screenY, (boxWidth / 2), boxHeight, 180.0, 255, 255, 255, fadeAlpha)
 
         -- Draw Discovered
         SetTextFont(0)
@@ -89,15 +93,11 @@ Discover.DrawBlipDiscoveryNotification = function(data)
             DrawText(screenX, screenY + descY)
         end
     else
-        DrawSprite("generic_textures", "inkroller_1a", screenX, screenY, boxWidth, boxHeight, 180.0, 50, 0, 0, fadeAlpha)
+        --DrawSprite("generic_textures", "inkroller_1a", screenX, screenY, boxWidth, boxHeight, 180.0, 50, 0, 0, fadeAlpha)
 
-        -- Draw Discovered
-        --SetTextFontForCurrentCommand(6)
-        --SetTextScale(textScale, textScale)
-        --SetTextColor(200, 200, 200, fadeAlpha)
-        --SetTextJustification(0)
-        --SetTextDropshadow(1, 0, 0, 0, fadeAlpha)
-        --DisplayText(discoveredStr, screenX, screenY + discY)
+        if not data.description then
+            discY = descY
+        end
 
         -- Draw name
         SetTextFontForCurrentCommand(1)
@@ -107,7 +107,7 @@ Discover.DrawBlipDiscoveryNotification = function(data)
         SetTextDropshadow(1, 0, 0, 0, fadeAlpha)
         DisplayText(data.name, screenX, screenY + nameY)
 
-        if data.description ~= nil then
+        if data.description then
             -- Draw description
             SetTextFontForCurrentCommand(6)
             SetTextScale(textScale, textScale)
@@ -115,6 +115,15 @@ Discover.DrawBlipDiscoveryNotification = function(data)
             SetTextJustification(0)
             SetTextDropshadow(1, 0, 0, 0, fadeAlpha)
             DisplayText(data.description, screenX, screenY + descY)
+        else
+            -- if not, just show "Discovered"
+            discY = descY
+            SetTextFontForCurrentCommand(6)
+            SetTextScale(textScale, textScale)
+            SetTextColor(200, 200, 200, fadeAlpha)
+            SetTextJustification(0)
+            SetTextDropshadow(1, 0, 0, 0, fadeAlpha)
+            DisplayText(discoveredStr, screenX, screenY + discY)
         end
     end
 end
@@ -126,51 +135,94 @@ end
 
 Discover.setBlipDiscovered = function(id)
     debugPrint("^5Debug^7: ^2Setting blip as discovered^7: ^3"..id)
+    -- if debugmode, it won't save the blip as discovered
     SetResourceKvpInt("blip_discovered_" .. id, debugMode and 0 or 1)
-    discoveredBlips[id] = true
 end
 
+Discover.createBlipZone = function(id, blip)
+    local discovered = Discover.isBlipDiscovered(id)
+    -- If player has "discovered" the blip, create it at player load in
+    if discovered then
+        if debugMode then
+            -- if debugMode is on set all the blips to undiscovered
+            debugPrint("^5Debug^7: ^2Debug mode is on^7, ^2setting blip ^7'^3"..id.."^7' ^2to undiscovered^7")
+            SetResourceKvpInt("blip_discovered_" .. id, 0)
+        end
+        discoveredBlips[id] = makeBlip(blip)
+        return true
+    end
+    -- If player has not found blips, create a discovery polyzone
+    if not discovered then
+        local Poly = nil
+        debugPrint("^5Debug^7: ^2Creating blip discovery zone^7: ^3"..id.."^7", formatCoord(blip.coords))
+        Poly = createCirclePoly({
+            name = id,
+            coords = blip.coords,
+            radius = blip.discoverRadius or 30.0,
+            onEnter = function()
+                debugPrint("^5Debug^7: ^2Entered Blip Discovery Zone^7: ^3"..id.."^7")
+
+                Discover.setBlipDiscovered(id)
+
+                discoveredBlips[id] = makeBlip(blip)
+
+                --loadTextureDict(gameName ~= "rdr3" and "timerBars" or "generic_textures")
+
+                Discover.ShowBlipDiscoveryNotification({
+                    id = id,
+                    name = blip.name,
+                    description = blip.description,
+                })
+
+                removePolyZone(Poly)
+            end,
+            onExit = function()
+
+            end,
+        })
+        return Poly
+    end
+end
+
+-- When the script loads, loop through through the preset blips
 onPlayerLoaded(function()
     for id, blip in pairs(DiscoverableBlips) do
-        local discovered = Discover.isBlipDiscovered(id)
-        -- If player has "discovered" the blip, create it at player load in
-        if discovered then
-            if debugMode then
-                -- if debugMode set all the blips to undiscovered
-                debugPrint("^5Debug^7: ^2Debug mode is on^7, ^2setting blip ^7'^3"..id.."^7' ^2to undiscovered^7")
-                SetResourceKvpInt("blip_discovered_" .. id, 0)
-            end
-            discoveredBlips[id] = true
-            makeBlip(blip)
-        end
-        -- If player has not found blips, create a discovery polyzone
-        if not discovered then
-            local Poly = nil
-            Poly = createCirclePoly({
-                name = id,
-                coords = blip.coords,
-                radius = blip.discoverRadius,
-                onEnter = function()
-                    debugPrint("^5Debug^7: ^2Entered Blip Discovery Zone^7: ^3"..id.."^7")
-
-                    Discover.setBlipDiscovered(id)
-
-                    makeBlip(blip)
-
-                    loadTextureDict(gameName ~= "rdr3" and "timerBars" or "generic_textures")
-
-                    Discover.ShowBlipDiscoveryNotification({
-                        id = id,
-                        name = blip.name,
-                        description = blip.description,
-                    })
-
-                    removePolyZone(Poly)
-                end,
-                onExit = function()
-
-                end,
-            })
-        end
+        Discover.createBlipZone(id, blip)
     end
 end, true)
+
+-- Export to receive blips from other scripts
+
+exports("discoverBlip", function(id, blip)
+    -- Get script name of the resource that is calling this function
+    local InvokingResource = GetInvokingResource()
+    externalZones[InvokingResource] = externalZones[InvokingResource] or {}
+
+    debugPrint("^5Debug^7: ^2Creating blip discovery zone^7: ^3"..id.."^7", formatCoord(blip.coords))
+    -- Create zone to discover the location blip
+    -- If they already have discovered it, it will create the blip
+    -- If not, it will create a polyzone to discover the blip
+    local zone = Discover.createBlipZone(id, blip)
+
+    -- Add created zone to cache
+    -- If already discovered, it will be "true"
+    -- If not it will be a a polyzone object
+    externalZones[InvokingResource][id] = zone
+end)
+
+AddEventHandler('onResourceStop', function(resourceName)
+    if externalZones[resourceName] then
+        for id, zone in ipairs(externalZones[resourceName]) do
+            if discoveredBlips[id] then
+                debugPrint("^5Debug^7: ^2Removing discovered blip^7: ^3"..id.."^7")
+                RemoveBlip(discoveredBlips[id])
+                discoveredBlips[id] = nil
+            end
+            if zone ~= true then
+                debugPrint("^5Debug^7: ^2Removing blip discovery zone^7: ^3"..id.."^7")
+                removePolyZone(zone)
+            end
+        end
+        externalZones[resourceName] = nil
+    end
+end)
