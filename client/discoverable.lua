@@ -15,9 +15,8 @@ Discover.ShowBlipDiscoveryNotification = function(data)
     fadeAlpha = 0
     fadeState = "in"
     if showingBlipNotif then
-        while showingBlipNotif == true do
-            Wait(1000)
-        end
+        showingBlipNotif = false
+        Wait(1000)
         showingBlipNotif = true
     else
         showingBlipNotif = true
@@ -45,7 +44,7 @@ Discover.ShowBlipDiscoveryNotification = function(data)
 end
 
 Discover.DrawBlipDiscoveryNotification = function(data)
-    --jsonPrint(data)
+    jsonPrint(data)
     local screenX, screenY = 0.5, 0.1
     local discY, nameY, descY = -0.060, -0.040, 0.015
     local boxWidth, boxHeight = 0.22, 0.12
@@ -62,14 +61,16 @@ Discover.DrawBlipDiscoveryNotification = function(data)
         --DrawSprite("timerbars", "all_black_bg", screenX + (boxWidth / 4) - 0.00045, screenY, (boxWidth / 2), boxHeight, 180.0, 255, 255, 255, fadeAlpha)
 
         -- Draw Discovered
-        SetTextFont(0)
-        SetTextJustification(0)
-        SetTextScale(textScale, textScale)
-        SetTextColour(200, 200, 200, fadeAlpha)
-        SetTextOutline()
-        SetTextEntry("STRING")
-        AddTextComponentSubstringPlayerName("Discovered")
-        DrawText(screenX, screenY + discY)
+        if data.alreadyDiscovered == false then
+            SetTextFont(0)
+            SetTextJustification(0)
+            SetTextScale(textScale, textScale)
+            SetTextColour(200, 200, 200, fadeAlpha)
+            SetTextOutline()
+            SetTextEntry("STRING")
+            AddTextComponentSubstringPlayerName("Discovered")
+            DrawText(screenX, screenY + discY)
+        end
 
         -- Draw name
         SetTextFont(1)
@@ -116,14 +117,16 @@ Discover.DrawBlipDiscoveryNotification = function(data)
             SetTextDropshadow(1, 0, 0, 0, fadeAlpha)
             DisplayText(data.description, screenX, screenY + descY)
         else
-            -- if not, just show "Discovered"
-            discY = descY
-            SetTextFontForCurrentCommand(6)
-            SetTextScale(textScale, textScale)
-            SetTextColor(200, 200, 200, fadeAlpha)
-            SetTextJustification(0)
-            SetTextDropshadow(1, 0, 0, 0, fadeAlpha)
-            DisplayText(discoveredStr, screenX, screenY + discY)
+            if data.alreadyDiscovered == false then
+                -- if not, just show "Discovered"
+                discY = descY
+                SetTextFontForCurrentCommand(6)
+                SetTextScale(textScale, textScale)
+                SetTextColor(200, 200, 200, fadeAlpha)
+                SetTextJustification(0)
+                SetTextDropshadow(1, 0, 0, 0, fadeAlpha)
+                DisplayText(discoveredStr, screenX, screenY + discY)
+            end
         end
     end
 end
@@ -149,6 +152,27 @@ Discover.createBlipZone = function(id, blip)
             SetResourceKvpInt("blip_discovered_" .. id, 0)
         end
         discoveredBlips[id] = makeBlip(blip)
+        if Config.DiscoveryBlips.alwaysShowLocationName then
+            local Poly = nil
+            debugPrint("^5Debug^7: ^2Creating always name zone^7: ^3"..id.."^7", formatCoord(blip.coords))
+            Poly = createCirclePoly({
+                name = id,
+                coords = blip.coords,
+                radius = blip.discoverRadius or 30.0,
+                onEnter = function()
+                    Discover.ShowBlipDiscoveryNotification({
+                        id = id,
+                        name = blip.name,
+                        description = blip.description,
+                        alreadyDiscovered = true,
+                    })
+                end,
+                onExit = function()
+
+                end,
+            })
+            return Poly
+        end
         return true
     end
     -- If player has not found blips, create a discovery polyzone
@@ -161,20 +185,18 @@ Discover.createBlipZone = function(id, blip)
             radius = blip.discoverRadius or 30.0,
             onEnter = function()
                 debugPrint("^5Debug^7: ^2Entered Blip Discovery Zone^7: ^3"..id.."^7")
-
                 Discover.setBlipDiscovered(id)
-
                 discoveredBlips[id] = makeBlip(blip)
-
-                --loadTextureDict(gameName ~= "rdr3" and "timerBars" or "generic_textures")
-
                 Discover.ShowBlipDiscoveryNotification({
                     id = id,
                     name = blip.name,
                     description = blip.description,
                 })
-
                 removePolyZone(Poly)
+                if Config.DiscoveryBlips.alwaysShowLocationName then
+                    Discover.createBlipZone(id, blip)
+                    debugPrint("^5Debug^7: ^2Creating always name zone^7: ^3"..id.."^7", formatCoord(blip.coords))
+                end
             end,
             onExit = function()
 
