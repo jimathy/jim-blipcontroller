@@ -79,7 +79,7 @@ if Config.onDutyBlips.enable then
         blipCache = {}
 
         for k, v in pairs(cacheDutyData) do
-            if v <= 1 then
+            if v >= 1 then
                 blipCache[#blipCache+1] = makeBlip({
                     coords = JobBlips[k].coords,
                     sprite = JobBlips[k].sprite,

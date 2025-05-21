@@ -1,9 +1,10 @@
 Config = {
     Lan = "en",
     System = {
-        Debug = true,
+        Debug = false,
         EventDebug = false,
     },
+
     DiscoveryBlips = {
         enable = true,      -- Set to false to disable the onDutyBlip system
 
@@ -13,13 +14,12 @@ Config = {
 
         alwaysShowLocationName = false,
     },
+
     onDutyBlips = {
         enable = true,              -- Set to false to disable the onDutyBlip system
 
         alwaysShowblips = true,     -- If true, the blips for the locations will always show, but not show "open"
                                     -- Not recommended if you have alot of onDuty blips as the max total blips is 99
-
-
     },
 }
 
