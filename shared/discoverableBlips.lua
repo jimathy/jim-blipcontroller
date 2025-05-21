@@ -1,6 +1,6 @@
 DiscoverableBlips = {
     ["example_fivem1"] = {
-        coords = vector3(-206.07, -1321.77, 30.89),
+        coords = vec3(-206.07, -1321.77, 30.89),
         name = "Benny's Original Motor Works",
         --description = "Fix and upgrade your vehicle here.",  -- This is optional
         sprite = 72,
