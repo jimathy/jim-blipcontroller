@@ -7,6 +7,11 @@ if Config.onDutyBlips.enable then
         GlobalState.syncJobBlipData = JobBlips
     end, true)
 
+    onResourceStop(function()
+        GlobalState.syncJobBlipData = nil
+        GlobalState.onDutyBlipsData = nil
+    end, true)
+
     function makeDutyList()
         -- make fresh list
         local onDutyAmount = {}

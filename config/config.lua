@@ -21,6 +21,11 @@ Config = {
         alwaysShowblips = true,     -- If true, the blips for the locations will always show, but not show "open"
                                     -- Not recommended if you have alot of onDuty blips as the max total blips is 99
     },
+
+    playerBlips = {
+        enable = true,
+
+    }
 }
 
 function locale(section, string)
