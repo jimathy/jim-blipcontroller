@@ -15,13 +15,13 @@ PlayerBlips = {
     },
     taxi = {
         color = 5,
-        canAlsoSee = {
+        allowedJobs = {
             taxi = true
         }
     },
     mechanic = {
         color = 22,
-        canAlsoSee = {
+        allowedJobs = {
             mechanic = true,
         }
     }

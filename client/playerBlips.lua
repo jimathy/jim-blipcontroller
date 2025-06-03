@@ -3,7 +3,7 @@ if Config.playerBlips.enable then
     local cachePlayerData = {}
     local blipCache = {}
 
-    playerBlips = {}
+    PlayerBlipFunc = {}
 
     -- STATE BAG HANDLERS --
 
@@ -13,8 +13,8 @@ if Config.playerBlips.enable then
         if type(value) == "table" then
             local player = getPlayer()
             if PlayerBlips[player.job] and player.onDuty then
-                cachePlayerData = playerBlips.scanForEntity(value.data, player.job)
-                playerBlips.updateBlips()
+                cachePlayerData = PlayerBlipFunc.scanForEntity(value.data, player.job)
+                PlayerBlipFunc.updateBlips()
             else
                 for src, data in pairs(blipCache) do
                     if data.blip and DoesBlipExist(data.blip) then
@@ -27,7 +27,7 @@ if Config.playerBlips.enable then
         end
     end)
 
-    playerBlips.scanForEntity = function(data, playerJob)
+    PlayerBlipFunc.scanForEntity = function(data, playerJob)
         local function ensureEnt(entNetID)
             --debugPrint("^5Debug^7: ^3ensureNetToEnt^7: ^2Requesting NetworkDoesNetworkIdExist^7(^6"..entNetID.."^7)")
             local timeout = 50
@@ -50,7 +50,7 @@ if Config.playerBlips.enable then
         local cacheData = data
         --jsonPrint(cacheData)
         for job in pairs(cacheData) do
-            if PlayerBlips[playerJob].canAlsoSee[job] then
+            if PlayerBlips[playerJob].allowedJobs[job] then
                 for k, v in pairs(cacheData[job]) do
                     if v.ped then
                         local netEnt = ensureEnt(v.ped)
@@ -69,7 +69,7 @@ if Config.playerBlips.enable then
     end
 
     local updatingBlips = false
-    playerBlips.updateBlips = function()
+    PlayerBlipFunc.updateBlips = function()
         local ped = PlayerPedId()
         local mySrc = GetPlayerServerId(PlayerId())
         local seenSrcs = {}

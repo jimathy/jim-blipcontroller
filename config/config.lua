@@ -12,7 +12,7 @@ Config = {
         fadeInSpeed = 15, -- speed of fade in
         fadeOutSpeed = 2, -- speed of fade out
 
-        alwaysShowLocationName = false,
+        alwaysShowLocationName = true,
     },
 
     onDutyBlips = {
