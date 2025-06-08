@@ -187,7 +187,6 @@ if Config.DiscoveryBlips.enable then
                 radius = blip.discoverRadius or 30.0,
                 onEnter = function()
                     debugPrint("^5Debug^7: ^2Entered Blip Discovery Zone^7: ^3"..id.."^7")
-                    Discover.setBlipDiscovered(id)
                     discoveredBlips[id] = makeBlip(blip)
                     Discover.ShowBlipDiscoveryNotification({
                         id = id,
@@ -196,6 +195,7 @@ if Config.DiscoveryBlips.enable then
                     })
                     removePolyZone(Poly)
                     if Config.DiscoveryBlips.alwaysShowLocationName then
+                        Discover.setBlipDiscovered(id)
                         Discover.createBlipZone(id, blip)
                         debugPrint("^5Debug^7: ^2Creating always name zone^7: ^3"..id.."^7", formatCoord(blip.coords))
                     end

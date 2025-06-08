@@ -23,7 +23,7 @@ Config = {
     },
 
     playerBlips = {
-        enable = true,
+        enable = false,
 
     }
 }
