@@ -1,30 +1,32 @@
 Config = {
     Lan = "en",
     System = {
-        Debug = false,
-        EventDebug = false,
+        Debug = false,                      -- Debug mode
+        EventDebug = false,                 -- Extra Debug messages
     },
 
     DiscoveryBlips = {
-        enable = true,      -- Set to false to disable the onDutyBlip system
+        enable = true,                      -- Set to false to disable the onDutyBlip system
 
-        displayTime = 6000, -- time in ms to display the notification
-        fadeInSpeed = 15, -- speed of fade in
-        fadeOutSpeed = 2, -- speed of fade out
+        displayTime = 6000,                 -- time in ms to display the notification
+        fadeInSpeed = 15,                   -- speed of fade in
+        fadeOutSpeed = 2,                   -- speed of fade out
 
-        alwaysShowLocationName = true,
+        showPopupBackground = true,         -- Adds the black background to the popup
+                                            -- Could possibly be seen as "too much" so made it optional
+
+        alwaysShowLocationName = true,     -- if enabled, will always show the location name on entering the area
     },
 
     onDutyBlips = {
-        enable = true,              -- Set to false to disable the onDutyBlip system
+        enable = false,                     -- Set to false to disable the onDutyBlip system
 
-        alwaysShowblips = true,     -- If true, the blips for the locations will always show, but not show "open"
-                                    -- Not recommended if you have alot of onDuty blips as the max total blips is 99
+        alwaysShowblips = false,            -- If true, the blips for the locations will always show, but not show "open"
+                                            -- Not recommended if you have alot of onDuty blips as the max total blips is 99
     },
 
     playerBlips = {
         enable = false,
-
     }
 }
 
