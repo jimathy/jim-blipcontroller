@@ -42,28 +42,31 @@ if Config.DiscoveryBlips.enable then
                     end
                 end
             end
+            Discover.setBlipDiscovered(data.id)
         end)
     end
 
     Discover.DrawBlipDiscoveryNotification = function(data)
         jsonPrint(data)
         local screenX, screenY = 0.5, 0.1
-        local discY, nameY, descY = -0.060, -0.040, 0.015
+        local discY, nameY, descY = -0.060, -0.038, 0.015
         local boxWidth, boxHeight = 0.22, 0.12
         local titleScale = 0.75
         local textScale = 0.35
 
-        if not data.description then
-            discY = descY
+        if data.alreadyDiscovered == true then
+            nameY = data.description and -0.040 or -0.025
         end
+        discY = not data.description and descY or discY
 
         if gameName ~= "rdr3" then
             -- Draw background box
-            --DrawSprite("timerbars", "all_black_bg", screenX - (boxWidth / 4) + 0.00045, screenY, (boxWidth / 2), boxHeight, 0.0, 255, 255, 255, fadeAlpha)
-            --DrawSprite("timerbars", "all_black_bg", screenX + (boxWidth / 4) - 0.00045, screenY, (boxWidth / 2), boxHeight, 180.0, 255, 255, 255, fadeAlpha)
-
+            if Config.DiscoveryBlips.showPopupBackground then
+                DrawSprite("timerbars", "all_black_bg", screenX - (boxWidth / 4) + 0.00045, screenY, (boxWidth / 2), boxHeight, 0.0, 255, 255, 255, fadeAlpha)
+                DrawSprite("timerbars", "all_black_bg", screenX + (boxWidth / 4) - 0.00045, screenY, (boxWidth / 2), boxHeight, 180.0, 255, 255, 255, fadeAlpha)
+            end
             -- Draw Discovered
-            if data.alreadyDiscovered == false then
+            if data.alreadyDiscovered ~= true then
                 SetTextFont(0)
                 SetTextJustification(0)
                 SetTextScale(textScale, textScale)
@@ -96,10 +99,8 @@ if Config.DiscoveryBlips.enable then
                 DrawText(screenX, screenY + descY)
             end
         else
-            --DrawSprite("generic_textures", "inkroller_1a", screenX, screenY, boxWidth, boxHeight, 180.0, 50, 0, 0, fadeAlpha)
-
-            if not data.description then
-                discY = descY
+            if Config.DiscoveryBlips.showPopupBackground then
+                DrawSprite("generic_textures", "inkroller_1a", screenX, screenY, boxWidth, boxHeight, 180.0, 50, 0, 0, fadeAlpha)
             end
 
             -- Draw name
@@ -119,7 +120,7 @@ if Config.DiscoveryBlips.enable then
                 SetTextDropshadow(1, 0, 0, 0, fadeAlpha)
                 DisplayText(data.description, screenX, screenY + descY)
             else
-                if data.alreadyDiscovered == false then
+                if data.alreadyDiscovered ~= true then
                     -- if not, just show "Discovered"
                     discY = descY
                     SetTextFontForCurrentCommand(6)
@@ -150,7 +151,7 @@ if Config.DiscoveryBlips.enable then
         if discovered then
             if debugMode then
                 -- if debugMode is on set all the blips to undiscovered
-                debugPrint("^5Debug^7: ^2Debug mode is on^7, ^2setting blip ^7'^3"..id.."^7' ^2to undiscovered^7")
+                debugPrint("^5Debug^7: ^1Debug mode is on^7, ^2setting blip ^7'^3"..id.."^7' ^2to undiscovered^7")
                 SetResourceKvpInt("blip_discovered_" .. id, 0)
             end
             discoveredBlips[id] = makeBlip(blip)
@@ -194,8 +195,8 @@ if Config.DiscoveryBlips.enable then
                         description = blip.description,
                     })
                     removePolyZone(Poly)
+                    while showingBlipNotif do Wait(500) end
                     if Config.DiscoveryBlips.alwaysShowLocationName then
-                        Discover.setBlipDiscovered(id)
                         Discover.createBlipZone(id, blip)
                         debugPrint("^5Debug^7: ^2Creating always name zone^7: ^3"..id.."^7", formatCoord(blip.coords))
                     end
