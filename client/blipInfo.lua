@@ -205,6 +205,7 @@ end)
 
 -- Add or update a blip's tooltip info
 function ShowBlipInfo(blip, data)
+    if not Config.blipInfo.enable then return end
     if not DoesBlipExist(blip) then return end
 
     SetBlipAsMissionCreatorBlip(blip, true)
@@ -232,6 +233,7 @@ end
 exports("ShowBlipInfo", ShowBlipInfo)
 
 function RemoveBlipInfo(blip)
+    if not Config.blipInfo.enable then return end
     BlipInfo.ResetBlipInfo(blip)
 end
 

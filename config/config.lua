@@ -27,6 +27,11 @@ Config = {
 
     playerBlips = {
         enable = false,
+    },
+
+    blipInfo = {
+        enable = false,
+
     }
 }
 
