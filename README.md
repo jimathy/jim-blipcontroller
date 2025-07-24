@@ -33,13 +33,13 @@ It attempts to swap between entity blips and coord blips to keep their locations
 
 And only shows them when they are on duty
 
-# Installation
+---
 
-- Place the script in your resources folder, eg `resources/[jimextras]`
- - Recommended order: https://jixelpatterns.gitbook.io/docs/troubleshooting/common-issues#load-order
-- Add `ensure [jimextras]` to your server.cfg
-- Done
+# Installation and Previews:
+## [JixelPatterns GitBook Documentation](https://jixelpatterns.gitbook.io/docs)
 
-# Dependencies
+### If you need support I have a discord server available, it helps me keep track of issues and give better support.
+## [JixelPatterns Discord](https://discord.gg/9pCDHmjYwd)
 
-- jim_bridge - https://github.com/jimathy/jim-bridge
+### If you think I did a good job here, consider donating as it keeps by lights on and my cat round:
+## [JixelPatterns Kofi](https://ko-fi.com/jixelpatterns)
