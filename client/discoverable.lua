@@ -158,22 +158,45 @@ if Config.DiscoveryBlips.enable then
             if Config.DiscoveryBlips.alwaysShowLocationName then
                 local Poly = nil
                 debugPrint("^5Debug^7: ^2Creating always name zone^7: ^3"..id.."^7", formatCoord(blip.coords))
-                Poly = createCirclePoly({
-                    name = id,
-                    coords = blip.coords,
-                    radius = blip.discoverRadius or 30.0,
-                    onEnter = function()
-                        Discover.ShowBlipDiscoveryNotification({
-                            id = id,
-                            name = blip.name,
-                            description = blip.description,
-                            alreadyDiscovered = true,
-                        })
-                    end,
-                    onExit = function()
+                if not blip.polyType or blip.polyType == 'circle' then
+                    Poly = createCirclePoly({
+                        name = id,
+                        coords = blip.coords,
+                        radius = blip.discoverRadius or 30.0,
+                        onEnter = function()
+                            Discover.ShowBlipDiscoveryNotification({
+                                id = id,
+                                name = blip.name,
+                                description = blip.description,
+                                alreadyDiscovered = true,
+                            })
+                        end,
+                        onExit = function()
 
-                    end,
-                })
+                        end,
+                    })
+                    
+                elseif blip.polyType == 'poly' then
+                    Poly = createPoly({
+                        name = id,
+                        points = blip.points, -- vec2 points
+                        minZ = blip.minZ or 0.0, -- Optional
+                        maxZ = blip.maxZ or 1500.0, -- Optional
+                        debug = debugMode,
+                        onEnter = function()
+                            Discover.ShowBlipDiscoveryNotification({
+                                id = id,
+                                name = blip.name,
+                                description = blip.description,
+                                alreadyDiscovered = true,
+                            })
+                        end,
+                        onExit = function()
+
+                        end,
+                    })
+                    
+                end
                 return Poly
             end
             return true
@@ -182,29 +205,57 @@ if Config.DiscoveryBlips.enable then
         if not discovered then
             local Poly = nil
             debugPrint("^5Debug^7: ^2Creating blip discovery zone^7: ^3"..id.."^7", formatCoord(blip.coords))
-            Poly = createCirclePoly({
-                name = id,
-                coords = blip.coords,
-                radius = blip.discoverRadius or 30.0,
-                onEnter = function()
-                    debugPrint("^5Debug^7: ^2Entered Blip Discovery Zone^7: ^3"..id.."^7")
-                    discoveredBlips[id] = makeBlip(blip)
-                    Discover.ShowBlipDiscoveryNotification({
-                        id = id,
-                        name = blip.name,
-                        description = blip.description,
-                    })
-                    removePolyZone(Poly)
-                    while showingBlipNotif do Wait(500) end
-                    if Config.DiscoveryBlips.alwaysShowLocationName then
-                        Discover.createBlipZone(id, blip)
-                        debugPrint("^5Debug^7: ^2Creating always name zone^7: ^3"..id.."^7", formatCoord(blip.coords))
-                    end
-                end,
-                onExit = function()
+            if not blip.polyType or blip.polyType == 'circle' then
+                Poly = createCirclePoly({
+                    name = id,
+                    coords = blip.coords,
+                    radius = blip.discoverRadius or 30.0,
+                    onEnter = function()
+                        debugPrint("^5Debug^7: ^2Entered Blip Discovery Zone^7: ^3"..id.."^7")
+                        discoveredBlips[id] = makeBlip(blip)
+                        Discover.ShowBlipDiscoveryNotification({
+                            id = id,
+                            name = blip.name,
+                            description = blip.description,
+                        })
+                        removePolyZone(Poly)
+                        while showingBlipNotif do Wait(500) end
+                        if Config.DiscoveryBlips.alwaysShowLocationName then
+                            Discover.createBlipZone(id, blip)
+                            debugPrint("^5Debug^7: ^2Creating always name zone^7: ^3"..id.."^7", formatCoord(blip.coords))
+                        end
+                    end,
+                    onExit = function()
 
-                end,
-            })
+                    end,
+                })
+            elseif blip.polyType == 'poly' then
+                Poly = createPoly({
+                    name = id,
+                    points = blip.points, -- vec2 points
+                    minZ = blip.minZ or 0.0, -- Optional
+                    maxZ = blip.maxZ or 1500.0, -- Optional
+                    debug = debugMode,
+                    onEnter = function()
+                        debugPrint("^5Debug^7: ^2Entered Blip Discovery Zone^7: ^3"..id.."^7")
+                        discoveredBlips[id] = makeBlip(blip)
+                        Discover.ShowBlipDiscoveryNotification({
+                            id = id,
+                            name = blip.name,
+                            description = blip.description,
+                        })
+                        removePolyZone(Poly)
+                        while showingBlipNotif do Wait(500) end
+                        if Config.DiscoveryBlips.alwaysShowLocationName then
+                            Discover.createBlipZone(id, blip)
+                            debugPrint("^5Debug^7: ^2Creating always name zone^7: ^3"..id.."^7", formatCoord(blip.coords))
+                        end
+                    end,
+                    onExit = function()
+
+                    end,
+                })
+            end
             return Poly
         end
     end
